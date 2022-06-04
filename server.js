@@ -87,7 +87,7 @@ const postContent = content => {
   }).catch(e => console.error(e));
 };
 
-cron.schedule('* 9 * * Saturday', async () => {
+cron.schedule('0 9 * * Saturday', async () => {
   try {
     const symbol = 'QQQ';
     const content = await fetchStockData(symbol);
