@@ -95,6 +95,8 @@ cron.schedule('0 9 * * Saturday', async () => {
   } catch (e) {
     console.error(e);
   }
+}, {
+  timezone: 'Asia/Tokyo'
 });
 
 app.get('*', (req, res) => {
