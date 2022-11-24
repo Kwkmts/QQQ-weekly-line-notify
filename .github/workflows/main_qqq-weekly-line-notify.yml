@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'QQQ-weekly-line-notify'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B0263B97ED1B4E1F8F1C630D5C90352C }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F163BD905C3A40398CF39F3437D592A1 }}
           package: .
