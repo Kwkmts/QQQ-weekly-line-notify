@@ -8,6 +8,9 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
 
+const TOKEN = process.env.LINE_ACCESS_TOKEN;
+const apikey = process.env.ALPHA_VANTAGE_API_KEY;
+
 const axios = require('axios');
 const cron = require('node-cron');
 const qs = require('query-string');
@@ -20,7 +23,6 @@ const roundFloat = (number, digit) => {
 };
 
 const fetchStockData = async symbol => {
-  const apikey = process.env.ALPHA_VANTAGE_API_KEY;
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY&symbol=${symbol}&apikey=${apikey}`;
 
   const data = await axios({
@@ -67,9 +69,15 @@ const fetchStockData = async symbol => {
   });
 };
 
-const postContent = content => {
-  const TOKEN = process.env.LINE_ACCESS_TOKEN;
+const contentToText = content => {
+  return `
+    銘柄: ${content.data.symbol}
+    週騰落率: ${content.data.rate}%
+    今週終値: ${content.data.thisWeek}
+    先週終値: ${content.data.lastWeek}`;
+};
 
+const postText = text => {
   axios({
     method: 'post',
     url: 'https://notify-api.line.me/api/notify',
@@ -78,26 +86,34 @@ const postContent = content => {
       Authorization: `Bearer ${TOKEN}`,
     },
     data: qs.stringify({
-      message: `
-      銘柄: ${content.data.symbol}
-      週騰落率: ${content.data.rate}%
-      今週終値: ${content.data.thisWeek}
-      先週終値: ${content.data.lastWeek}`,
+      message: text,
     }),
   }).catch(e => console.error(e));
 };
 
-cron.schedule('0 9 * * Saturday', async () => {
-  try {
-    const symbol = 'QQQ';
-    const content = await fetchStockData(symbol);
-    postContent(content);
-  } catch (e) {
-    console.error(e);
+const main = async symbol => {
+  const content = await fetchStockData(symbol);
+  const text = contentToText(content);
+  postText(text);
+};
+
+postText('テスト配信');
+main('QQQ');
+
+cron.schedule(
+  '0 9 * * Saturday',
+  async () => {
+    try {
+      const symbol = 'QQQ';
+      main(symbol);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+  {
+    timezone: 'Asia/Tokyo',
   }
-}, {
-  timezone: 'Asia/Tokyo'
-});
+);
 
 app.get('*', (req, res) => {
   res.sendStatus(404);
